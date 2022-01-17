@@ -1,0 +1,14 @@
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\bin\Debug\SQLite.Interop.dll
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\bin\Debug\WriteToUsb.exe
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\bin\Debug\WriteToUsb.pdb
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\bin\Debug\System.Data.SQLite.dll
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\obj\Debug\WriteToUsb.csprojResolveAssemblyReference.cache
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\obj\Debug\MainWindow.g.cs
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\obj\Debug\App.g.cs
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\obj\Debug\WriteToUsb_Content.g.cs
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\obj\Debug\WriteToUsb_MarkupCompile.cache
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\obj\Debug\WriteToUsb_MarkupCompile.lref
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\obj\Debug\MainWindow.baml
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\obj\Debug\WriteToUsb.g.resources
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\obj\Debug\WriteToUsb.exe
+C:\Users\12181.LFPC9011\work\USBLogHandler\02_WriteToUsb\obj\Debug\WriteToUsb.pdb
