@@ -34,7 +34,7 @@
         </StackPanel>
 
         <StackPanel Grid.Row="3">
-            <ListBox ItemsSource="{Binding LvFileNames}" 
+            <ListBox Name="listBox" ItemsSource="{Binding LvFileNames}" 
                      Height="120" Margin="50,20"/>
         </StackPanel>
 

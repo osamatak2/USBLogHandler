@@ -1,13 +1,13 @@
-C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\bin\Debug\SQLite.Interop.dll
-C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\bin\Debug\SelectFileToUsb.exe
-C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\bin\Debug\SelectFileToUsb.pdb
-C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\bin\Debug\System.Data.SQLite.dll
 C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\obj\Debug\SelectFileToUsb.csprojResolveAssemblyReference.cache
 C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\obj\Debug\MainWindow.g.cs
 C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\obj\Debug\App.g.cs
 C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\obj\Debug\SelectFileToUsb_Content.g.cs
 C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\obj\Debug\SelectFileToUsb_MarkupCompile.cache
 C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\obj\Debug\SelectFileToUsb_MarkupCompile.lref
+C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\bin\Debug\SQLite.Interop.dll
+C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\bin\Debug\SelectFileToUsb.exe
+C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\bin\Debug\SelectFileToUsb.pdb
+C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\bin\Debug\System.Data.SQLite.dll
 C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\obj\Debug\MainWindow.baml
 C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\obj\Debug\SelectFileToUsb.g.resources
 C:\Users\12181.LFPC9011\work\USBLogHandler\01_SelectFileToUsb\obj\Debug\SelectFileToUsb.exe

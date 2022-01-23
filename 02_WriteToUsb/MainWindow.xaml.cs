@@ -30,33 +30,43 @@ namespace WriteToUsb
             // データベース に接続する
             var connectionStringBuilder = new SQLiteConnectionStringBuilder();
             connectionStringBuilder.DataSource = @"..\..\..\sqlite_db\myDb.db";
-            using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
+            
+            try
             {
-                connection.Open();
-                using(var command = connection.CreateCommand())
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
-                    // まだUSB書き出しが済でないレコードを抽出するSQL文
-                    command.CommandText = "SELECT * FROM request WHERE is_written <> 'done'";
-                    var reader = command.ExecuteReader();
+                    connection.Open();
+                    using(var command = connection.CreateCommand())
+                    {
+                        // まだUSB書き出しが済でないレコードを抽出するSQL文
+                        command.CommandText = "SELECT * FROM request WHERE is_written <> 'done'";
+                        var reader = command.ExecuteReader();
 
-                    if (reader.HasRows)
-                    {
-                        // 各レコードから、必要なカラムの要素だけでLogクラスのインスタンスを作る
-                        while (reader.Read())
+                        if (reader.HasRows)
                         {
-                            string date = Convert.ToString(reader["date"]);
-                            string user = Convert.ToString(reader["user"]);
-                            string guid = Convert.ToString(reader["guid"]);
-                            Log log = new Log(date, guid, user);
-                            LvLogs.Add(log);
+                            // 各レコードから、必要なカラムの要素だけでLogクラスのインスタンスを作る
+                            while (reader.Read())
+                            {
+                                string date = Convert.ToString(reader["date"]);
+                                string user = Convert.ToString(reader["user"]);
+                                string guid = Convert.ToString(reader["guid"]);
+                                Log log = new Log(date, guid, user);
+                                LvLogs.Add(log);
+                            }
                         }
+                        else
+                        {
+                            MessageBox.Show("(注意) 対象のデータがありません");
+                        }
+                        reader.Close();
                     }
-                    else
-                    {
-                        MessageBox.Show("(注意) 対象のデータがありません");
-                    }
-                    reader.Close();
                 }
+            }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                MessageBox.Show("データベースへの接続または読み込みできませんでした。再度起動してください。");
+                Application.Current.Shutdown();
             }
 
             InitializeComponent();
@@ -81,8 +91,20 @@ namespace WriteToUsb
             }
 
             var item = (Log)ListView.SelectedItem;
+            if (item == null)
+            {
+                MessageBox.Show("そのレコードは存在しません。いったん終了してツールをもう一度起動してください");
+                return;
+            }
+
             string[] files = GetSelectedFiles(item);
-            if(files == null) return;
+            if (files == null)
+            {
+                MessageBox.Show("対象のファイルが存在しません\r\n" +
+                    "削除されたか、既に承認済です。確認してください\r\n" + 
+                    "いったん終了してツールをもう一度起動してください");
+                return;
+            }
 
             foreach(string file in files)
             {
@@ -95,61 +117,81 @@ namespace WriteToUsb
         // 「実行する」ボタン
         private void WriteButton_Click(object sender, RoutedEventArgs e)
         {
-            if (ListView.SelectedItem == null) return;
-            var item = (Log)ListView.SelectedItem;
+            if (ListView.SelectedItem == null)
+            {
+                MessageBox.Show("レコードが選択されていないか、レコードが存在しません");
+                return;
+            }
+            var item = (Log)ListView.SelectedItem;            
             
             // 選択したァイルのパスを取得
             string[] files = GetSelectedFiles(item);
-
-            // USBに書き込みし、書き込み日時を取得する
-            string writeDateTime = writeFilesToUsb(files);
+            if (files == null)
+            {
+                MessageBox.Show("対象のファイルが存在しません\r\n" +
+                    "削除されたか、既に承認済です。確認してください\r\n" + 
+                    "いったん終了してツールをもう一度起動してください");
+                return;
+            }
 
             // データベースに記録する
-            writeDb(files, writeDateTime);
+            //var result = writeDb(files, writeDateTime);
+            string writeDateTime = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
 
-            // ZIPファイルを作成して保存する
-            createZip(item,files); 
+            if(writeDb(files, writeDateTime))
+            {
+                // USBに書き込みし、書き込み日時を取得する
+                writeFilesToUsb(files);
 
-            // これ以降、繰り返し実行できないように、「実行する」ボタンを無効化
-            WriteButton.IsEnabled = false;
+                // ZIPファイルを作成して保存する(ZIP化は未実装。4.0では使えない)
+                createZip(item,files); 
 
-            // これ以降、繰り返し選択できないように、ListView, ListBox を無効化
-            ListView.IsEnabled = false;
-            ListBox.IsEnabled = false;
+                // 「実行する」ボタンを無効化
+                WriteButton.IsEnabled = false;
 
-            MessageBox.Show("処理が完了しました。終了してください");
+                // ListView, ListBox を無効化
+                ListView.IsEnabled = false;
+                ListBox.IsEnabled = false;
+
+                MessageBox.Show("・USBメモリに出力しました\r\n" +
+                    "・archiveフォルダにファイルを保存しました\r\n" +
+                    "・データべースに記録しました\r\n\r\n  >>>  処理が完了しました。終了してください");
+            }
         }
 
         // 「終了」ボタン
         private void QuitButton_Click(object sender, RoutedEventArgs e)
         {
-           Close();
+           Application.Current.Shutdown();
         }
 
         // ListBoxに表示されているファイルを取得する
         private string[] GetSelectedFiles(Log logItem)
         {
-            string[] files = Directory.GetFiles(@"..\..\..\temp\" + logItem.Guid, "*");
+            string dirPath = @"..\..\..\temp\" + logItem.Guid;
+            if (!Directory.Exists(dirPath))
+            {
+                return null;
+            }
+            
+            string[] files = Directory.GetFiles(dirPath, "*");
             return files;
         }
 
-        private string writeFilesToUsb(string[] filePaths)
+        private void writeFilesToUsb(string[] filePaths)
         {
-            //USBメモリ代わりのダミーのフォルダ
+            // （暫定処置）USBメモリ代わりのダミーのフォルダ
             string dummyDir = @"..\..\..\dummyUSB\";
 
-            //copy files
-            string datetime = DateTime.Now.ToString();
-
+            // copy files
             foreach (string path in filePaths)
                {
                    File.Copy(path, dummyDir + Path.GetFileName(path), true);  //@"D:\"
                }
-            return datetime;
         }
 
-        // テーブルWriteLogToUsb、fileDetailsを作成し、記録する
-        private void writeDb(string[] filePaths, string datetime)
+        // テーブルWriteLogToUsb、fileDetailsを作成し、記録するメソッド
+        private bool writeDb(string[] filePaths, string datetime)
         {
             var connectionStringBuilder = new SQLiteConnectionStringBuilder();
             connectionStringBuilder.DataSource = @"..\..\..\sqlite_db\myDb.db";
@@ -180,45 +222,64 @@ namespace WriteToUsb
                 "UPDATE request SET is_written = 'done' WHERE guid = '" + log.Guid + "'";
             
             // データベースに接続する
-            using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
+            try
             {
-                connection.Open();
-
-                // トランザクションとして実行する
-                using (SQLiteTransaction transaction = connection.BeginTransaction())
+                using (var connection = new SQLiteConnection(connectionStringBuilder.ConnectionString))
                 {
-                    SQLiteCommand command = connection.CreateCommand();
-                    
-                    command.CommandText = writeLogTblText;
-                    command.ExecuteNonQuery();
+                    connection.Open();
 
-                    command.CommandText = insertLogCmdText;
-                    command.ExecuteNonQuery();
-
-                    command.CommandText = fileDetailsTblText;
-                    command.ExecuteNonQuery();
-
-                    command.CommandText = updateIsWrittenText;
-                    command.ExecuteNonQuery();
-
-                    foreach(string fileName in filePaths)
+                    // トランザクションとして実行する
+                    using (SQLiteTransaction transaction = connection.BeginTransaction())
                     {
-                        // fileDetailsテーブルにファイル明細をINSERTするSQL文
-                        string insertDetailsCmdText = "INSERT INTO fileDetails"
-                            + "(guid, file_name) "
-                            + "VALUES('" + log.Guid + "','" + Path.GetFileName(fileName) + "')";
-                        command.CommandText = insertDetailsCmdText;
-                        command.ExecuteNonQuery();
-                    }
+                        try
+                        {
+                            SQLiteCommand command = connection.CreateCommand();
+                            
+                            command.CommandText = writeLogTblText;
+                            command.ExecuteNonQuery();
 
-                    transaction.Commit();
+                            command.CommandText = insertLogCmdText;
+                            command.ExecuteNonQuery();
+
+                            command.CommandText = fileDetailsTblText;
+                            command.ExecuteNonQuery();
+
+                            command.CommandText = updateIsWrittenText;
+                            command.ExecuteNonQuery();
+
+                            foreach(string fileName in filePaths)
+                            {
+                                // fileDetailsテーブルにファイル明細をINSERTするSQL文
+                                string insertDetailsCmdText = "INSERT INTO fileDetails"
+                                    + "(guid, file_name) "
+                                    + "VALUES('" + log.Guid + "','" + Path.GetFileName(fileName) + "')";
+                                command.CommandText = insertDetailsCmdText;
+                                command.ExecuteNonQuery();
+                            }
+                            transaction.Commit();
+                        }
+                        catch (System.Exception ex)
+                        {
+                            transaction.Rollback();
+                            MessageBox.Show(ex.Message);
+                            MessageBox.Show("データベースに書込みできませんでした。再度確定するか、" +
+                                "終了してしばらく経ってからやり直してください。");
+                            return false;
+                        }
+                    }
                 }
             }
+            catch (System.Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+                return false;
+            }
+            return true;
         }
 
         private void createZip(Log zipItem, string[] srcFiles)
         {
-            // まだZIPには対応していない。社内環境では.NET FRAMEWORK4.0のアセンブリしかないため。
+            // まだZIPには対応していない。現在の環境では.NET FRAMEWORK4.0のアセンブリしかないため。
             string archiveDir = @"..\..\..\archive\" + zipItem.Guid;
             Directory.CreateDirectory(archiveDir);
             foreach (string path in srcFiles)
@@ -260,8 +321,7 @@ namespace WriteToUsb
         private void RemoveReadonlyAttribute(DirectoryInfo dirInfo)
         {
             //フォルダの属性を変更する
-            if ((dirInfo.Attributes & FileAttributes.ReadOnly) ==
-                FileAttributes.ReadOnly)
+            if ((dirInfo.Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
             {
                 dirInfo.Attributes = FileAttributes.Normal;
             }
@@ -269,12 +329,11 @@ namespace WriteToUsb
             //フォルダ内のすべてのファイルの属性を変更する
             foreach (FileInfo fi in dirInfo.GetFiles())
             {
-                if ((fi.Attributes & FileAttributes.ReadOnly) ==
-                    FileAttributes.ReadOnly)
+                if ((fi.Attributes & FileAttributes.ReadOnly) == FileAttributes.ReadOnly)
                     fi.Attributes = FileAttributes.Normal;
             }
 
-            //サブフォルダの属性を回帰的に変更する
+            //サブフォルダの属性を再帰的に変更する
             foreach (DirectoryInfo di in dirInfo.GetDirectories())
             {
                 RemoveReadonlyAttribute(di);
